@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f0e5">
+  <title>打造我的传奇球星</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260728-12">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="brandbar">
+      <button class="icon-btn is-hidden" id="back-btn" type="button" aria-label="返回" title="返回">&#8592;</button>
+      <button class="brand" id="home-btn" type="button" aria-label="返回首页">
+        BUILD-<span>A</span>-PLAYER
+      </button>
+      <button class="icon-btn" id="sound-btn" type="button" aria-label="关闭音效" title="音效">&#9835;</button>
+    </header>
+
+    <main id="app" aria-live="polite"></main>
+
+    <footer class="footer-note">球迷自制模拟游戏 · 非 NBA 官方产品</footer>
+  </div>
+
+  <div class="modal-root" id="modal-root" aria-live="assertive"></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <template id="home-template">
+    <section class="screen home-screen">
+      <div class="hero-mark" aria-hidden="true">
+        <div class="court-lines"></div>
+        <div class="hero-ball"><span></span></div>
+        <b>14</b>
+      </div>
+      <p class="eyebrow">SPIN THE WHEEL · BUILD YOUR PLAYER</p>
+      <h1>打造我的传奇球星</h1>
+      <p class="subtitle">从现役球员中夺取属性，打造属于我的球星</p>
+
+      <div class="mode-card mode-card--active">
+        <span class="pill pill--orange">Current</span>
+        <h2>现役模式</h2>
+        <p>从现役球员中夺取属性，组建我的球员</p>
+        <button class="primary-btn" type="button" data-action="start">开始游戏</button>
+      </div>
+
+      <div class="mode-card mode-card--active mode-card--era">
+        <span class="pill pill--mint">New</span>
+        <h2>纪元模式</h2>
+        <p>进入经典赛季，和对应年代的球员一起开启生涯</p>
+        <button class="secondary-btn" type="button" data-action="era-mode">选择纪元</button>
+      </div>
+
+      <nav class="quick-links" aria-label="辅助功能">
+        <button type="button" data-action="honors"><span>&#9733;</span> 荣誉墙</button>
+        <button type="button" data-action="help"><span>?</span> 玩法说明</button>
+        <button type="button" data-action="continue"><span>&#8635;</span> 继续上局</button>
+      </nav>
+    </section>
+  </template>
+
+  <template id="era-template">
+    <section class="screen era-screen">
+      <p class="step-label">ERA MODE</p>
+      <h1>选择联盟纪元</h1>
+      <p class="subtitle">初始名单、球队分区与每年新秀都将跟随所选年份</p>
+      <div class="era-grid">
+        <button class="era-card" type="button" data-era="2003">
+          <span class="pill pill--orange">2003-04</span>
+          <strong>03 黄金一代</strong>
+          <p>詹姆斯、韦德、安东尼与波什进入联盟</p>
+          <small>29 支球队 · 20 年生涯</small>
+        </button>
+        <button class="era-card" type="button" data-era="2009">
+          <span class="pill pill--mint">2009-10</span>
+          <strong>群星争冠年代</strong>
+          <p>科比冲击连冠，詹姆斯步入巅峰，库里开启新秀赛季</p>
+          <small>30 支球队 · 20 年生涯</small>
+        </button>
+      </div>
+      <div class="info-strip"><b>选秀规则</b> 每年加入对应年份历史巅峰排名前 15 的新秀；2026 年后为预测名单</div>
+    </section>
+  </template>
+
+  <template id="position-template">
+    <section class="screen position-screen">
+      <p class="step-label">STEP 01 / 03</p>
+      <h1>选择我的位置</h1>
+      <p class="subtitle">位置只影响最终总评权重，所有球员属性均按原值使用</p>
+      <div class="position-grid" id="position-grid"></div>
+      <div class="info-strip"><b>提示</b> 选定后本局不可更改</div>
+      <button class="primary-btn" id="confirm-position" type="button" disabled>确认位置</button>
+    </section>
+  </template>
+
+  <template id="build-template">
+    <section class="screen build-screen">
+      <div class="build-heading">
+        <div>
+          <p class="step-label">STEP 02 / 03</p>
+          <h1>拼出我的球星</h1>
+        </div>
+        <div class="position-stamp" id="position-stamp"></div>
+      </div>
+
+      <div class="progress-row">
+        <div><b id="locked-count">0</b><span>/ 14 项</span></div>
+        <div class="progress-track"><i id="progress-fill"></i></div>
+        <small id="reroll-count">换人 3 次</small>
+      </div>
+
+      <div class="build-layout">
+        <aside class="attribute-board">
+          <div class="ovr-preview"><span>预计总评</span><b id="ovr-preview">--</b></div>
+          <div class="attribute-list" id="attribute-list"></div>
+        </aside>
+
+        <section class="draft-panel">
+          <div class="slot-machine">
+            <div class="slot-label">本轮球队</div>
+            <div class="slot-window">
+              <div class="slot-shadow slot-shadow--top"></div>
+              <div class="slot-result" id="slot-result">
+                <span class="slot-placeholder">?</span>
+                <b>等待抽签</b>
+              </div>
+              <div class="slot-shadow slot-shadow--bottom"></div>
+            </div>
+            <button class="slot-button" id="spin-team" type="button">拉杆抽队</button>
+          </div>
+
+          <div class="roster-panel" id="roster-panel">
+            <div class="empty-state">
+              <div class="mini-ball" aria-hidden="true"></div>
+              <p>抽到球队后，从球员中挑选一人</p>
+              <small>再点击左侧未锁定的属性</small>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </template>
+
+  <template id="reveal-template">
+    <section class="screen reveal-screen">
+      <p class="step-label">STEP 03 / 03</p>
+      <div class="reveal-kicker">BUILD COMPLETE</div>
+      <h1>我的传奇球星</h1>
+      <div class="player-pass" id="player-pass"></div>
+      <div class="reveal-actions">
+        <button class="primary-btn" type="button" data-action="career">开启生涯</button>
+        <button class="secondary-btn" type="button" data-action="restart">重新建模</button>
+      </div>
+    </section>
+  </template>
+
+  <template id="career-template">
+    <section class="screen career-screen">
+      <p class="step-label">MY CAREER</p>
+      <h1>决定我的生涯球队</h1>
+      <p class="subtitle">从本局遇到的球队中抽签，正式踏上联盟征程</p>
+      <div class="career-slot" id="career-slot"></div>
+      <button class="primary-btn" id="career-spin" type="button">抽取生涯球队</button>
+    </section>
+  </template>
+
+  <template id="season-template">
+    <section class="screen season-screen">
+      <div id="season-content"></div>
+    </section>
+  </template>
+
+  <template id="honors-template">
+    <section class="screen honors-screen">
+      <p class="step-label">LEGACY ROOM</p>
+      <h1>征服联盟</h1>
+      <p class="subtitle">带领 30 支球队逐一夺冠，点亮我的冠军版图</p>
+      <div class="honor-summary" id="honor-summary"></div>
+      <div class="honor-grid" id="honor-grid"></div>
+    </section>
+  </template>
+
+  <script src="roster-data.js?v=20260728-12"></script>
+  <script src="era-data.js?v=20260728-12"></script>
+  <script src="data.js?v=20260728-12"></script>
+  <script src="game.js?v=20260728-12"></script>
+</body>
+</html>
